@@ -10,6 +10,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/jtguibas/cinema v0.0.0-20200208054232-ca271f28a020
+	github.com/kkdai/youtube v1.2.1
 	github.com/onsi/ginkgo v1.12.1 // indirect
 	github.com/onsi/gomega v1.10.0 // indirect
 	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516 // indirect
