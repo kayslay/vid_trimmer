@@ -25,12 +25,13 @@ func (h Video) Download(w http.ResponseWriter, r *http.Request) {
 
 	buf := bytes.NewBuffer([]byte{})
 
-	err = h.svc.Download(buf, ds)
+	fileName, err := h.svc.Download(buf, ds)
 	if err != nil {
 		render.Render(w, r, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", mime.TypeByExtension("."+ds.Type))
+	w.Header().Set("content-disposition", "inline; filename="+fileName)
 	buf.WriteTo(w)
 }

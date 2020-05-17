@@ -1,5 +1,5 @@
 run:
-	PORT=9000 go run main.go
+	PORT=8080 go run main.go
 
 docker:
 	docker build  -t vid_trimmer .

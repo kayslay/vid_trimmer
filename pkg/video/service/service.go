@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	Download(w io.Writer, d DownloadStruct) error
+	Download(w io.Writer, d DownloadStruct) (string, error)
 }
 
 type basicService struct {
@@ -27,13 +27,13 @@ func NewBasicService(url input.Interface) Service {
 	return &basicService{url: url}
 }
 
-func (s basicService) Download(w io.Writer, d DownloadStruct) error {
+func (s basicService) Download(w io.Writer, d DownloadStruct) (string, error) {
 	//	for now we only support url style downloads
 	pathUrl, err := s.url.Fetch(d.URL)
 	defer input.Remove(pathUrl)
 
 	if err != nil {
-		return errors.CoverErr(
+		return "", errors.CoverErr(
 			err,
 			errors.New("could not create file at the moment", http.StatusServiceUnavailable),
 			log.WithFields(log.Fields{
@@ -45,7 +45,7 @@ func (s basicService) Download(w io.Writer, d DownloadStruct) error {
 
 	v, err := cinema.Load(pathUrl)
 	if err != nil {
-		return errors.CoverErr(
+		return "", errors.CoverErr(
 			err,
 			errors.New("could not create file at the moment", http.StatusServiceUnavailable),
 			log.WithFields(log.Fields{
@@ -63,7 +63,7 @@ func (s basicService) Download(w io.Writer, d DownloadStruct) error {
 
 	outputFile, err := os.Open(outputPath)
 	if err != nil {
-		return errors.CoverErr(
+		return "", errors.CoverErr(
 			err,
 			errors.New("could not create file at the moment", http.StatusServiceUnavailable),
 			log.WithFields(log.Fields{
@@ -77,5 +77,5 @@ func (s basicService) Download(w io.Writer, d DownloadStruct) error {
 
 	io.Copy(w, outputFile)
 
-	return nil
+	return path.Base(outputPath), nil
 }
