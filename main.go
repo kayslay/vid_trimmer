@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-chi/chi"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gitlab.com/kayslay/vid_trimmer/config"
@@ -11,7 +12,8 @@ import (
 )
 
 func main() {
-
+	godotenv.Load()
+	viper.AutomaticEnv()
 	port := ":8080"
 	if viper.GetString(config.EnvPort) != "" {
 		port = ":" + viper.GetString(config.EnvPort)

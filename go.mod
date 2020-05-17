@@ -8,6 +8,7 @@ require (
 	github.com/go-chi/chi v4.1.1+incompatible
 	github.com/gobuffalo/validate v2.0.4+incompatible
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/jtguibas/cinema v0.0.0-20200208054232-ca271f28a020
 	github.com/onsi/ginkgo v1.12.1 // indirect
 	github.com/onsi/gomega v1.10.0 // indirect
