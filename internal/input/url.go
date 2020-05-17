@@ -39,9 +39,9 @@ func (l link) Fetch(p string) (string, error) {
 	log.Println("content-length", cl)
 	clInt, err := strconv.Atoi(cl)
 
-	if err != nil {
-		return "", errors.New("link does not specify file size")
-	}
+	//if err != nil {
+	//	return "", errors.New("link does not specify file size")
+	//}
 
 	if err == nil && clInt > MaxFileSize {
 		return "", errors.New(fmt.Sprintf("video is greater than %.4f MB", float64(MaxFileSize)/(1<<20)))
