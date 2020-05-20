@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/bushaHQ/httputil/render"
 	"gitlab.com/kayslay/vid_trimmer/pkg/video/service"
 	"mime"
@@ -25,13 +26,14 @@ func (h Video) Download(w http.ResponseWriter, r *http.Request) {
 
 	buf := bytes.NewBuffer([]byte{})
 
-	fileName, err := h.svc.Download(buf, ds)
+	fileName, err := h.svc.Download(r.Context(), buf, ds)
 	if err != nil {
 		render.Render(w, r, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", mime.TypeByExtension("."+ds.Type))
-	w.Header().Set("content-disposition", "inline; filename="+fileName)
+	w.Header().Set("Content-Disposition", "inline; filename="+fileName)
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", buf.Len()))
 	buf.WriteTo(w)
 }

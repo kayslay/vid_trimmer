@@ -12,7 +12,8 @@ func Router() http.Handler {
 	r := chi.NewRouter()
 
 	dir := "file"
-	svc := service.NewBasicService(input.NewLink(dir), input.NewYoutube(dir))
+	link := input.NewLink(dir)
+	svc := service.NewBasicService(link, input.NewYoutube(dir, link))
 	h := handler.NewVideo(svc)
 	r.Get("/", h.Download)
 	return r

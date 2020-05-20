@@ -1,6 +1,7 @@
 package input
 
 import (
+	"context"
 	"fmt"
 	"github.com/bushaHQ/httputil/errors"
 	"github.com/dchest/uniuri"
@@ -25,10 +26,15 @@ func NewLink(dir string) Interface {
 	return &link{dir: dir}
 }
 
-func (l link) Fetch(p string) (string, error) {
+func (l link) Fetch(ctx context.Context, p string) (string, error) {
 
 	s := time.Now()
-	resp, err := http.Get(p)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p, nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", errors.New("could not get video file", 401)
 	}

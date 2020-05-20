@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"github.com/bushaHQ/httputil/errors"
 	"github.com/dchest/uniuri"
@@ -13,10 +14,11 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 )
 
 type Service interface {
-	Download(w io.Writer, d DownloadStruct) (string, error)
+	Download(ctx context.Context, w io.Writer, d DownloadStruct) (string, error)
 }
 
 type basicService struct {
@@ -29,14 +31,15 @@ func NewBasicService(url, youtube input.Interface) Service {
 	return &basicService{url: url, youtube: youtube}
 }
 
-func (s basicService) Download(w io.Writer, d DownloadStruct) (string, error) {
+func (s basicService) Download(ctx context.Context, w io.Writer, d DownloadStruct) (string, error) {
 	//	for now we only support url style downloads
 	u, err := url.Parse(d.URL)
 	if err != nil {
 		return "", err
 	}
 
-	pathUrl, err := s.getInput(u.Hostname()).Fetch(d.URL)
+	n := time.Now()
+	pathUrl, err := s.getInput(u.Hostname()).Fetch(ctx, d.URL)
 	defer input.Remove(pathUrl)
 
 	if err != nil {
@@ -49,7 +52,9 @@ func (s basicService) Download(w io.Writer, d DownloadStruct) (string, error) {
 			}),
 		)
 	}
+	log.Println("Time taken to process input", time.Since(n))
 
+	n = time.Now()
 	v, err := cinema.Load(pathUrl)
 	if err != nil {
 		return "", errors.CoverErr(
@@ -79,10 +84,13 @@ func (s basicService) Download(w io.Writer, d DownloadStruct) (string, error) {
 			}),
 		)
 	}
+	log.Println("Time cinema took to trim file", time.Since(n))
 
+	n = time.Now()
 	defer outputFile.Close()
 
 	io.Copy(w, outputFile)
+	log.Println("Time copy video", time.Since(n))
 
 	return path.Base(outputPath), nil
 }
