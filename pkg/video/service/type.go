@@ -1,10 +1,7 @@
 package service
 
-import "time"
+import (
+	"gitlab.com/kayslay/vid_trimmer/internal/filestore"
+)
 
-type DownloadStruct struct {
-	URL   string
-	Start time.Duration
-	End   time.Duration
-	Type  string
-}
+type DownloadStruct = filestore.DownloadStruct

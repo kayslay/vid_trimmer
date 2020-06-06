@@ -2,6 +2,7 @@ package video
 
 import (
 	"github.com/go-chi/chi"
+	"gitlab.com/kayslay/vid_trimmer/internal/filestore"
 	"gitlab.com/kayslay/vid_trimmer/internal/input"
 	"gitlab.com/kayslay/vid_trimmer/pkg/video/handler"
 	"gitlab.com/kayslay/vid_trimmer/pkg/video/service"
@@ -13,8 +14,9 @@ func Router() http.Handler {
 
 	dir := "file"
 	link := input.NewLink(dir)
-	svc := service.NewBasicService(link, input.NewYoutube(dir, link))
+	svc := service.NewBasicService(link, input.NewYoutube(dir, link), filestore.NewTempFile())
 	h := handler.NewVideo(svc)
-	r.Get("/", h.Download)
+	r.Get("/", h.GenerateDownloadLink)
+	r.Get("/{key}", h.Download)
 	return r
 }
