@@ -5,6 +5,8 @@ go 1.13
 require (
 	github.com/bushaHQ/httputil v0.0.0-20200415211438-b77ec55f33f2
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
+	github.com/dghubble/go-twitter v0.0.0-20190719072343-39e5462e111f
+	github.com/dghubble/oauth1 v0.6.0
 	github.com/go-chi/chi v4.1.1+incompatible
 	github.com/gobuffalo/validate v2.0.4+incompatible
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect

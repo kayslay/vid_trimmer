@@ -14,7 +14,12 @@ func Router() http.Handler {
 
 	dir := "file"
 	link := input.NewLink(dir)
-	svc := service.NewBasicService(link, input.NewYoutube(dir, link), filestore.NewTempFile())
+	svc := service.NewBasicService(
+		link,
+		input.NewYoutube(dir, link),
+		input.NewTwitter(dir, link),
+		filestore.NewTempFile(),
+	)
 	h := handler.NewVideo(svc)
 	r.Get("/", h.GenerateDownloadLink)
 	r.Get("/{key}", h.Download)

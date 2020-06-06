@@ -25,11 +25,11 @@ type basicService struct {
 	url       input.Interface
 	youtube   input.Interface
 	fileStore filestore.FileStorer
-	//twitter input.Interface
+	twitter   input.Interface
 }
 
-func NewBasicService(url, youtube input.Interface, storer filestore.FileStorer) Service {
-	return &basicService{url: url, youtube: youtube, fileStore: storer}
+func NewBasicService(url, youtube, twitter input.Interface, storer filestore.FileStorer) Service {
+	return &basicService{url: url, youtube: youtube, twitter: twitter, fileStore: storer}
 }
 
 func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, bool, error) {
@@ -118,6 +118,8 @@ func (s basicService) getInput(hostname string) input.Interface {
 	switch {
 	case strings.Contains(hostname, "youtu"):
 		return s.youtube
+	case strings.Contains(hostname, "twitter"):
+		return s.twitter
 	default:
 		return s.url
 	}
