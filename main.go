@@ -14,7 +14,10 @@ import (
 
 func main() {
 	godotenv.Load()
+	//set default
+	viper.SetDefault(config.EnvFileSize, 100)
 	viper.AutomaticEnv()
+	log.Println(viper.GetInt64(config.EnvFileSize))
 	port := ":8080"
 	if viper.GetString(config.EnvPort) != "" {
 		port = ":" + viper.GetString(config.EnvPort)

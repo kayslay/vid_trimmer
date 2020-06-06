@@ -1,7 +1,8 @@
 package config
 
 const (
-	Env     = "ENV"
-	EnvPort = "PORT"
-	EnvHost = "HOST"
+	Env         = "ENV"
+	EnvPort     = "PORT"
+	EnvHost     = "HOST"
+	EnvFileSize = "FILE_SIZE"
 )

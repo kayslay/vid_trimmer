@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/bushaHQ/httputil/errors"
 	"github.com/dchest/uniuri"
+	"github.com/spf13/viper"
+	"gitlab.com/kayslay/vid_trimmer/config"
 	"io"
 	"log"
 	"net/http"
@@ -15,7 +17,7 @@ import (
 )
 
 const (
-	MaxFileSize = 100 << 20
+	MbShiftBy = 20
 )
 
 type link struct {
@@ -49,8 +51,8 @@ func (l link) Fetch(ctx context.Context, p string) (string, error) {
 	//	return "", errors.New("link does not specify file size")
 	//}
 
-	if err == nil && clInt > MaxFileSize {
-		return "", errors.New(fmt.Sprintf("video is greater than %.4f MB", float64(MaxFileSize)/(1<<20)))
+	if err == nil && clInt > int(getMaxSize()) {
+		return "", errors.New(fmt.Sprintf("video is greater than %.4f MB", float64(getMaxSize())/(1<<MbShiftBy)))
 	}
 
 	log.Println(resp.Header)
@@ -63,7 +65,7 @@ func (l link) Fetch(ctx context.Context, p string) (string, error) {
 	}
 	defer out.Close()
 
-	_, err = io.CopyN(out, resp.Body, MaxFileSize)
+	_, err = io.CopyN(out, resp.Body, getMaxSize())
 	if err != nil {
 		if err != io.EOF {
 			return "", err
@@ -73,4 +75,8 @@ func (l link) Fetch(ctx context.Context, p string) (string, error) {
 	log.Println("GETTER TIME", time.Since(s))
 
 	return outputPath, nil
+}
+
+func getMaxSize() int64 {
+	return viper.GetInt64(config.EnvFileSize) << MbShiftBy
 }
