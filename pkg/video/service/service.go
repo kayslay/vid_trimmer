@@ -125,7 +125,7 @@ func (s basicService) getInput(hostname string) input.Interface {
 
 func (s basicService) generateFileKey(d DownloadStruct) (string, bool) {
 	hash := md5.New()
-	hash.Write([]byte(fmt.Sprintf("%s-%d-%d", d.URL, d.Start, d.End)))
+	hash.Write([]byte(fmt.Sprintf("%s-%s-%d-%d", d.URL, d.Type, d.Start, d.End)))
 	key := fmt.Sprintf("%x", hash.Sum(nil))[:10] + "." + d.Type
 
 	//check the fileStore if the file exists
