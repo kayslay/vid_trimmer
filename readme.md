@@ -42,8 +42,21 @@ websocket (remember, I'm a lazy dev)
 
 ```json
 {
-"link":"localhost:8080/download/41c6d76521.gif",
-"state":"DONE"
+  "link": "https://vid-trim-stage.herokuapp.com/download/727266af07.mp4",
+  "state": "DONE"
+}
+```
+
+### Example 
+
+#### Request
+[example with my personal service 😁](https://vid-trim-stage.herokuapp.com/download?start=0&end=21&format=mp4&url=https://www.youtube.com/watch?v=59AYXzCa-Cs)
+
+#### Response
+```json
+{
+  "link": "https://vid-trim-stage.herokuapp.com/download/727266af07.mp4",
+  "state": "DONE"
 }
 ```
 

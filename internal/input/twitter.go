@@ -49,8 +49,10 @@ func (t twitter) Fetch(ctx context.Context, p string) (string, error) {
 	media := tweet.ExtendedEntities.Media[0]
 	var videoLink string
 	for _, variant := range media.VideoInfo.Variants {
+		//pick the first
 		if variant.ContentType == "video/mp4" {
 			videoLink = variant.URL
+			break
 		}
 	}
 
