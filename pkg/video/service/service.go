@@ -61,14 +61,17 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 			}),
 		)
 	}
-	log.Println("Time taken to process input", time.Since(n))
+	log.Println("Time taken to get input", time.Since(n))
 
 	//trim in the background
 	go func() {
+		s.fileStore.ChangeState(key, filestore.StatePending)
 		defer input.Remove(pathUrl)
 		defer func() {
 			//handle panic
 			if err := recover(); err != nil {
+				s.fileStore.ChangeState(key, filestore.StateNull)
+
 				log.WithFields(log.Fields{
 					"context": "cinema/load",
 					"method":  "video/download",
@@ -79,6 +82,8 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 		n := time.Now()
 		v, err := cinema.Load(pathUrl)
 		if err != nil {
+			s.fileStore.ChangeState(key, filestore.StateNull)
+
 			errors.CoverErr(
 				err,
 				errors.New("could not create file at the moment", http.StatusServiceUnavailable),
@@ -94,6 +99,8 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 		err = v.Render(tempOutputPath)
 
 		if err != nil {
+			s.fileStore.ChangeState(key, filestore.StateNull)
+
 			errors.CoverErr(
 				err,
 				errors.New("could not create file at the moment", http.StatusServiceUnavailable),

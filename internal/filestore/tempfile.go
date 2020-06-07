@@ -60,3 +60,7 @@ func (tf tempFile) Get(key string) (io.ReadCloser, FileStat, error) {
 func (tf tempFile) GeneratePath(key string) string {
 	return path.Join(os.TempDir(), key)
 }
+
+func (tf tempFile) ChangeState(key, state string) {
+	tf.cache.Set(key, state, cacheDuration)
+}

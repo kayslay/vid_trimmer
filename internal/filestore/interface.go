@@ -21,6 +21,8 @@ type FileStorer interface {
 	Get(key string) (io.ReadCloser, FileStat, error)
 	//GeneratePath generates the path in which the file will be saved
 	GeneratePath(key string) string
+	//ChangeState change the the state
+	ChangeState(key, state string)
 }
 
 type FileStat struct {
