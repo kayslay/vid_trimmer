@@ -5,10 +5,21 @@ import (
 	"time"
 )
 
+const (
+	StateNull    = "NULL"
+	StatePending = "PENDING"
+	StateDone    = "DONE"
+)
+
 type FileStorer interface {
-	Write(path string, r io.ReadCloser)
-	Exists(path string) bool
-	Get(path string) (io.ReadCloser, FileStat, error)
+	//Write write the content of the temp file to a store.
+	//remove temp file if no longer needed
+	Write(key, tempOutputPath string)
+	//FileState the state of the file
+	FileState(outputPath string) string
+	//Get get the file with the key
+	Get(key string) (io.ReadCloser, FileStat, error)
+	//GeneratePath generates the path in which the file will be saved
 	GeneratePath(key string) string
 }
 

@@ -1,27 +1,47 @@
 package filestore
 
 import (
+	"fmt"
+	"github.com/patrickmn/go-cache"
 	"io"
 	"os"
 	"path"
+	"time"
 )
 
-type tempFile struct{}
+const (
+	cacheDuration = 30 * time.Minute
+)
+
+type tempFile struct {
+	cache *cache.Cache
+}
 
 func NewTempFile() FileStorer {
-	return &tempFile{}
+	return &tempFile{cache: cache.New(cacheDuration, 10*time.Minute)}
 }
 
-func (tf tempFile) Write(key string, r io.ReadCloser) {
+func (tf tempFile) Write(key, tempOutputPath string) {
 
 	//	this does nothing since the file is already in the temp folder
+	tf.cache.Set(key, StateDone, cacheDuration)
 }
 
-func (tf tempFile) Exists(key string) bool {
+func (tf tempFile) FileState(key string) string {
 	if _, err := os.Open(tf.GeneratePath(key)); err != nil {
-		return false
+		return StateNull
 	}
-	return true
+
+	s, exists := tf.cache.Get(key)
+	if !exists {
+		return StateNull
+	}
+
+	if fmt.Sprint(s) == StateDone {
+		return StateDone
+	}
+	return StatePending
+
 }
 
 func (tf tempFile) Get(key string) (io.ReadCloser, FileStat, error) {

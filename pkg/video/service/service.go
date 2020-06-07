@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/kayslay/vid_trimmer/internal/filestore"
 	"gitlab.com/kayslay/vid_trimmer/internal/input"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,9 +17,9 @@ import (
 )
 
 type Service interface {
-	Download(ctx context.Context, d DownloadStruct) (string, bool, error)
-	GeneratePath(key string) string
-	Exists(key string) bool
+	Download(ctx context.Context, d DownloadStruct) (string, string, error)
+	Get(key string) (io.ReadCloser, filestore.FileStat, error)
+	FileState(key string) string
 }
 
 type basicService struct {
@@ -32,24 +33,26 @@ func NewBasicService(url, youtube, twitter input.Interface, storer filestore.Fil
 	return &basicService{url: url, youtube: youtube, twitter: twitter, fileStore: storer}
 }
 
-func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, bool, error) {
-	key, exist := s.generateFileKey(d)
-	if exist {
-		return key, exist, nil
+func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, string, error) {
+	key, state := s.generateFileKey(d)
+	if state != filestore.StateNull {
+		return key, state, nil
 	}
 
-	outputPath := s.fileStore.GeneratePath(key)
-	//	for now we only support url style downloads
+	//generate a temp file
+	tempOutputPath := filestore.NewTempFile().GeneratePath(key)
+
+	// get the url struct
 	u, err := url.Parse(d.URL)
 	if err != nil {
-		return "", false, err
+		return "", filestore.StateNull, err
 	}
 
 	n := time.Now()
 	pathUrl, err := s.getInput(u.Hostname()).Fetch(ctx, d.URL)
 
 	if err != nil {
-		return "", false, errors.CoverErr(
+		return "", filestore.StateNull, errors.CoverErr(
 			err,
 			errors.New("could not create file at the moment", http.StatusServiceUnavailable),
 			log.WithFields(log.Fields{
@@ -88,7 +91,7 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, b
 		}
 
 		v.Trim(d.Start, d.End)
-		err = v.Render(outputPath)
+		err = v.Render(tempOutputPath)
 
 		if err != nil {
 			errors.CoverErr(
@@ -104,12 +107,13 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, b
 
 		log.Println("Time cinema took to trim file", time.Since(n))
 
-		//TODO send file to a fileStore interface. this interface stores the file
-		// example fileStores are s3, fs+cache to hold time out e.t.c
+		//call a file store to store the video s3, tempDir e.t.c
+		s.fileStore.Write(key, tempOutputPath)
+
 		//TODO notify the state of the video with websockets
 	}()
 
-	return key, false, nil
+	return key, filestore.StateNull, nil
 }
 
 //getInput returns the input interface that will be used to download the video
@@ -125,19 +129,19 @@ func (s basicService) getInput(hostname string) input.Interface {
 	}
 }
 
-func (s basicService) generateFileKey(d DownloadStruct) (string, bool) {
+func (s basicService) generateFileKey(d DownloadStruct) (string, string) {
 	hash := md5.New()
 	hash.Write([]byte(fmt.Sprintf("%s-%s-%d-%d", d.URL, d.Type, d.Start, d.End)))
 	key := fmt.Sprintf("%x", hash.Sum(nil))[:10] + "." + d.Type
 
 	//check the fileStore if the file exists
-	return key, s.fileStore.Exists(key)
+	return key, s.fileStore.FileState(key)
 }
 
-func (s basicService) GeneratePath(key string) string {
-	return s.fileStore.GeneratePath(key)
+func (s basicService) Get(key string) (io.ReadCloser, filestore.FileStat, error) {
+	return s.fileStore.Get(key)
 }
 
-func (s basicService) Exists(key string) bool {
-	return s.fileStore.Exists(key)
+func (s basicService) FileState(key string) string {
+	return s.fileStore.FileState(key)
 }

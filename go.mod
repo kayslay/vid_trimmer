@@ -15,6 +15,7 @@ require (
 	github.com/kkdai/youtube v1.2.1
 	github.com/onsi/ginkgo v1.12.1 // indirect
 	github.com/onsi/gomega v1.10.0 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.0
