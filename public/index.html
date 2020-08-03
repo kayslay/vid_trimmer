@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.css" rel="stylesheet">
+    <title>Video Trimmer</title>
+</head>
+<body class="column">
+<h1 class="title">Trim Videos</h1>
+<p>
+    Trim Videos helps trim videos before they are downloaded from the server.
+</p>
+<p>
+    Why download a full video when you only need part of it.
+</p>
+
+<div class="">
+    <div class="columns is-desktop">
+        <div class="control column is-one-quarter-desktop">
+            <input type="text" id="vid-link" class="input is-primary" placeholder="Enter video link">
+        </div>
+    </div>
+
+    <div class="columns is-desktop">
+        <div class="column is-one-third-desktop filed">
+            <div class="control">
+                <input type="number" id="start-time" class="input is-primary" placeholder="Start time in seconds">
+            </div>
+        </div>
+        <div class="column is-one-third-desktop">
+            <div class="control">
+                <input type="number" id="stop-time" class="input is-primary" placeholder="End time in seconds">
+            </div>
+        </div>
+
+    </div>
+    <div class="columns">
+        <div class="column is-">
+            <div class="select is-primary">
+                <select id="format">
+                    <option value="mp4">mp4</option>
+                    <option value="gif">gif</option>
+                    <option value="ogg">ogg</option>
+                    <option value="mov">mov</option>
+                </select>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="columns">
+        <div class="column">
+            <button id="submit" class="button is-primary"> Trim Video</button>
+        </div>
+        <div class="column is-full">
+            <a href="" id="download-link" target="_blank" class=""> </a>
+            <p id="error-msg"></p>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="columns">
+
+</div>
+
+<script src="./link.js"></script>
+<script>
+    //
+    function generateLink() {
+        let videoLink = document.getElementById("vid-link").value,
+            startTime = document.getElementById("start-time").value,
+            stopTime = document.getElementById("stop-time").value,
+            format = document.getElementById("format").value;
+
+        return `${baseURL}/download?url=${videoLink}&start=${startTime}&end=${stopTime}&format${format}`
+    }
+
+    async function trimVideo() {
+        console.log(generateLink())
+        //make request to the server
+        try {
+            let resp = await fetch(generateLink())
+            let body = await resp.json()
+            if (resp.status !== 200) {
+                document.getElementById("error-msg").innerText = body.message ? body.message : ""
+                return
+            }
+
+            let downloadLink = document.getElementById("download-link")
+
+            if (body.state === "DONE") {
+                downloadLink.innerText = "download"
+                downloadLink.setAttribute("href", body.link)
+            }
+
+            //update the state of the download link buttton
+            downloadLink.classList.add("is-loading")
+            downloadLink.classList.add("button")
+            if (body.state === "DONE") {
+                downloadLink.classList.remove("is-loading")
+                downloadLink.classList.add("is-primary")
+            }
+
+            if (body.state === "PENDING" || body.state === "NULL") {
+                setTimeout(trimVideo, 5000)
+            }
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    document.getElementById("submit").onclick = trimVideo
+
+</script>
+</body>
+</html>
