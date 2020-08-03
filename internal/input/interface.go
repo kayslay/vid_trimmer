@@ -6,7 +6,7 @@ import (
 )
 
 type Interface interface {
-	//Fetch takes a path and returns the new path for the file
+	//Fetch takes a path/url and returns the new tmp path for the file
 	Fetch(ctx context.Context, path string) (string, error)
 }
 

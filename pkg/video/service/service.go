@@ -35,6 +35,9 @@ func NewBasicService(url, youtube, twitter input.Interface, storer filestore.Fil
 
 func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, string, error) {
 	key, state := s.generateFileKey(d)
+
+	//if the file is not null it means it pending or done
+	//return the key and state
 	if state != filestore.StateNull {
 		return key, state, nil
 	}
@@ -49,6 +52,7 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 	}
 
 	n := time.Now()
+
 	pathUrl, err := s.getInput(u.Hostname()).Fetch(ctx, d.URL)
 
 	if err != nil {

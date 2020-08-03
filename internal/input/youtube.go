@@ -40,8 +40,6 @@ func (y youtube) Fetch(ctx context.Context, p string) (str string, err error) {
 		return "", err
 	}
 
-	//outputPath := path.Join(y.dir, uniuri.NewLen(10))
-
 	var vUrl string
 	for _, stream := range dl.StreamList {
 
@@ -51,10 +49,4 @@ func (y youtube) Fetch(ctx context.Context, p string) (str string, err error) {
 	}
 
 	return y.urlInput.Fetch(ctx, vUrl)
-
-	//if err := dl.StartDownloadWithQuality(outputPath, "medium"); err != nil {
-	//	return "", err
-	//}
-	//
-	//return outputPath, nil
 }

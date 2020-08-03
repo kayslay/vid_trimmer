@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/joho/godotenv"
@@ -8,8 +11,6 @@ import (
 	"github.com/spf13/viper"
 	"gitlab.com/kayslay/vid_trimmer/config"
 	"gitlab.com/kayslay/vid_trimmer/pkg/video"
-	"net/http"
-	"time"
 )
 
 func main() {
@@ -18,7 +19,7 @@ func main() {
 	viper.SetDefault(config.EnvFileSize, 100)
 	viper.AutomaticEnv()
 	log.Println(viper.GetInt64(config.EnvFileSize))
-	port := ":8080"
+	port := "8080"
 	if viper.GetString(config.EnvPort) != "" {
 		port = ":" + viper.GetString(config.EnvPort)
 	}
@@ -39,6 +40,7 @@ func initRoute() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
 	r.Mount("/download", video.Router())
+	r.Mount("/", http.FileServer(http.Dir("./public")))
 	return r
 }
 
