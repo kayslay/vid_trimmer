@@ -1,119 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.css" rel="stylesheet">
     <title>Video Trimmer</title>
 </head>
+
 <body class="column">
-<h1 class="title">Trim Videos</h1>
-<p>
-    Trim Videos helps trim videos before they are downloaded from the server.
-</p>
-<p>
-    Why download a full video when you only need part of it.
-</p>
+    <h1 class="title">Trim Videos</h1>
+    <h3 class="subtitle">
+        This simple application helps trim videos before they are downloaded.
+        It reduces the size of the video file youdownload.
+        Works with <code>Youtube</code>, <code>Twitter</code> & <code>Video URL</code>
 
-<div class="">
-    <div class="columns is-desktop">
-        <div class="control column is-one-quarter-desktop">
-            <input type="text" id="vid-link" class="input is-primary" placeholder="Enter video link">
-        </div>
-    </div>
+    </h3>
+    <h3 class="subtitle"> </h3>
+    <h3 class="subtitle"> </h3>
 
-    <div class="columns is-desktop">
-        <div class="column is-one-third-desktop filed">
-            <div class="control">
-                <input type="number" id="start-time" class="input is-primary" placeholder="Start time in seconds">
-            </div>
-        </div>
-        <div class="column is-one-third-desktop">
-            <div class="control">
-                <input type="number" id="stop-time" class="input is-primary" placeholder="End time in seconds">
+    <div class="">
+        <div class="columns is-desktop">
+            <div class="control column is-one-quarter-desktop">
+                <label>Video Link</label><input type="text" id="vid-link" class="input is-primary"
+                    placeholder="Enter video link">
             </div>
         </div>
 
-    </div>
-    <div class="columns">
-        <div class="column is-">
-            <div class="select is-primary">
-                <select id="format">
-                    <option value="mp4">mp4</option>
-                    <option value="gif">gif</option>
-                    <option value="ogg">ogg</option>
-                    <option value="mov">mov</option>
-                </select>
+        <div class="columns is-desktop">
+            <div class="column is-one-third-desktop filed">
+                <div class="control">
+                    <label>Start Time</label>
+                    <input type="number" id="start-time" class="input is-primary" placeholder="Start time in seconds">
+                </div>
+            </div>
+            <div class="column is-one-third-desktop">
+                <div class="control">
+                    <label>End Time</label>
+                    <input type="number" id="stop-time" class="input is-primary" placeholder="End time in seconds">
+                </div>
+            </div>
+
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="select is-primary">
+                    <select id="format">
+                        <option value="mp4">mp4</option>
+                        <option value="gif">gif</option>
+                        <option value="ogg">ogg</option>
+                        <option value="mov">mov</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="columns">
+            <div class="column">
+                <button id="submit" class="button is-primary"> Trim Video</button>
+            </div>
+            <div class="column is-full">
+                <a href="" id="download-link" target="_blank" class=""> </a>
+
+            </div>
+        </div>
+        <div class="container is-hidden" id="notification">
+            <div class="notification">
+                <strong>Error</strong> <em id="error-msg"></em></em>
             </div>
         </div>
 
     </div>
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
 
-    <div class="columns">
-        <div class="column">
-            <button id="submit" class="button is-primary"> Trim Video</button>
+                <strong>Vid-Trimmer</strong> by <a href="https://twitter.com/Kayslaycode">@Kayslaycode</a> The source
+                code
+                is
+                licensed
+                <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. <br />
+                <a href="https://github.com/kayslay/vid_trimmer">Github</a>.
+            </p>
         </div>
-        <div class="column is-full">
-            <a href="" id="download-link" target="_blank" class=""> </a>
-            <p id="error-msg"></p>
-        </div>
-    </div>
+    </footer>
 
-</div>
+    <script src="./link.js"></script>
+    <script>
+        let downloadLink = document.getElementById("download-link")
+        let errorDisplay = document.getElementById("error-msg")
+        let notification = document.getElementById("notification")
 
+        //
+        function generateLink() {
+            let videoLink = document.getElementById("vid-link").value,
+                startTime = document.getElementById("start-time").value,
+                stopTime = document.getElementById("stop-time").value,
+                format = document.getElementById("format").value;
 
-<div class="columns">
+            return `${baseURL}/download?url=${videoLink}&start=${startTime}&end=${stopTime}&format=${format}`
+        }
 
-</div>
-
-<script src="./link.js"></script>
-<script>
-    //
-    function generateLink() {
-        let videoLink = document.getElementById("vid-link").value,
-            startTime = document.getElementById("start-time").value,
-            stopTime = document.getElementById("stop-time").value,
-            format = document.getElementById("format").value;
-
-        return `${baseURL}/download?url=${videoLink}&start=${startTime}&end=${stopTime}&format${format}`
-    }
-
-    async function trimVideo() {
-        console.log(generateLink())
-        //make request to the server
-        try {
-            let resp = await fetch(generateLink())
-            let body = await resp.json()
-            if (resp.status !== 200) {
-                document.getElementById("error-msg").innerText = body.message ? body.message : ""
-                return
-            }
-
-            let downloadLink = document.getElementById("download-link")
-
-            if (body.state === "DONE") {
-                downloadLink.innerText = "download"
-                downloadLink.setAttribute("href", body.link)
-            }
-
+        async function trimVideo() {
+            console.log(generateLink())
             //update the state of the download link buttton
             downloadLink.classList.add("is-loading")
+            downloadLink.classList.remove("is-hidden")
             downloadLink.classList.add("button")
-            if (body.state === "DONE") {
-                downloadLink.classList.remove("is-loading")
-                downloadLink.classList.add("is-primary")
-            }
+            //make request to the server
+            try {
+                let resp = await fetch(generateLink())
+                let body = await resp.json()
+                if (resp.status !== 200) {
+                    showError(body.message)
+                    hideDownloadLink()
+                    return
+                }
 
-            if (body.state === "PENDING" || body.state === "NULL") {
-                setTimeout(trimVideo, 5000)
-            }
+                if (body.state === "DONE") {
+                    showDownloadLink(body.link)
+                    hideError()
+                }
 
-        } catch (err) {
-            console.log(err)
+                if (body.state === "PENDING" || body.state === "NULL") {
+                    setTimeout(trimVideo, 5000)
+                }
+
+            } catch (err) {
+                console.log(err)
+            }
         }
-    }
 
-    document.getElementById("submit").onclick = trimVideo
+        function showError(message) {
+            notification.classList.remove("is-hidden")
+            errorDisplay.innerText = message ? message : ""
+        }
 
-</script>
+        function hideError() {
+            notification.classList.add("is-hidden")
+        }
+
+        function showDownloadLink(link) {
+            downloadLink.classList.remove("is-loading")
+            downloadLink.classList.remove("is-hidden")
+            downloadLink.classList.add("is-primary")
+            downloadLink.innerText = "download"
+            downloadLink.setAttribute("href", link)
+        }
+
+        function hideDownloadLink() {
+            downloadLink.classList.remove("is-loading")
+            downloadLink.classList.add("is-hidden")
+        }
+
+        document.getElementById("submit").onclick = trimVideo
+
+    </script>
 </body>
+
 </html>
