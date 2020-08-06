@@ -8,12 +8,10 @@ import (
 	"github.com/spf13/viper"
 	"gitlab.com/kayslay/vid_trimmer/config"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path"
 	"strconv"
-	"time"
 )
 
 const (
@@ -30,7 +28,6 @@ func NewLink(dir string) Interface {
 
 func (l link) Fetch(ctx context.Context, p string) (string, error) {
 
-	s := time.Now()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p, nil)
 	if err != nil {
 		return "", err
@@ -43,20 +40,13 @@ func (l link) Fetch(ctx context.Context, p string) (string, error) {
 
 	defer resp.Body.Close()
 
-	cl := resp.Header.Get("Content-Length")
-	log.Println("content-length", cl)
-	clInt, err := strconv.Atoi(cl)
+	contentLength, err := strconv.Atoi(resp.Header.Get("Content-Length"))
 
-	//if err != nil {
-	//	return "", errors.New("link does not specify file size")
-	//}
-
-	if err == nil && clInt > int(getMaxSize()) {
+	if err == nil && contentLength > int(getMaxSize()) {
 		return "", errors.New(fmt.Sprintf("video is greater than %.4f MB", float64(getMaxSize())/(1<<MbShiftBy)))
 	}
 
-	log.Println(resp.Header)
-
+	//set output path for video
 	outputPath := path.Join(l.dir, uniuri.NewLen(10))
 
 	out, err := os.Create(outputPath)
@@ -71,8 +61,6 @@ func (l link) Fetch(ctx context.Context, p string) (string, error) {
 			return "", err
 		}
 	}
-
-	log.Println("GETTER TIME", time.Since(s))
 
 	return outputPath, nil
 }

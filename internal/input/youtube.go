@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	errors2 "github.com/bushaHQ/httputil/errors"
-	yt "github.com/kkdai/youtube"
+	"github.com/dchest/uniuri"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"gitlab.com/kayslay/vid_trimmer/config"
+	yt "github.com/wader/goutubedl"
+	"io"
 	"net/http"
+	"os"
+	"path"
 )
 
 type youtube struct {
@@ -35,18 +37,33 @@ func (y youtube) Fetch(ctx context.Context, p string) (str string, err error) {
 		}
 	}()
 
-	dl := yt.NewYoutube(viper.GetString(config.Env) != "production")
-	if err := dl.DecodeURL(p); err != nil {
+	result, err := yt.New(context.Background(), p, yt.Options{})
+	if err != nil {
 		return "", err
 	}
 
-	var vUrl string
-	for _, stream := range dl.StreamList {
+	log.Println(string(result.RawJSON))
+	downloadResult, err := result.Download(context.Background(), "best[height<=480]")
+	if err != nil {
+		return "", err
+	}
 
-		if stream["quality"] == "medium" {
-			vUrl = stream["url"]
+	defer downloadResult.Close()
+
+	outputPath := path.Join(y.dir, uniuri.NewLen(10))
+
+	out, err := os.Create(outputPath)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.CopyN(out, downloadResult, getMaxSize())
+	if err != nil {
+		if err != io.EOF {
+			return "", err
 		}
 	}
 
-	return y.urlInput.Fetch(ctx, vUrl)
+	return outputPath, nil
 }
