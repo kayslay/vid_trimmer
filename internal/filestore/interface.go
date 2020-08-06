@@ -12,6 +12,7 @@ const (
 	StateError   = "ERROR"
 )
 
+//FileStorer defines an interface that handles file storage
 type FileStorer interface {
 	//Write write the content of the temp file to a store.
 	//remove temp file if no longer needed

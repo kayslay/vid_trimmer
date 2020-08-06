@@ -46,7 +46,6 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 	tempOutputPath := filestore.NewTempFile().GeneratePath(key)
 	s.fileStore.ChangeState(key, filestore.StatePending)
 
-	// get the url struct
 	u, err := url.Parse(d.URL)
 	if err != nil {
 		s.fileStore.ChangeState(key, filestore.StateNull)

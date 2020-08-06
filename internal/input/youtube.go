@@ -37,13 +37,13 @@ func (y youtube) Fetch(ctx context.Context, p string) (str string, err error) {
 		}
 	}()
 
-	result, err := yt.New(context.Background(), p, yt.Options{})
+	result, err := yt.New(ctx, p, yt.Options{})
 	if err != nil {
 		return "", err
 	}
 
 	log.Println(string(result.RawJSON))
-	downloadResult, err := result.Download(context.Background(), "best[height<=480]")
+	downloadResult, err := result.Download(ctx, "best[height<=480]")
 	if err != nil {
 		return "", err
 	}
