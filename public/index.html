@@ -121,6 +121,10 @@
                 if (body.state === "DONE") {
                     showDownloadLink(body.link)
                     hideError()
+                } else if (body.state === "ERROR") {
+                    showError("the link passed can not be trimmed")
+                    hideDownloadLink()
+                    return
                 }
 
                 if (body.state === "PENDING" || body.state === "NULL") {

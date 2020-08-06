@@ -9,6 +9,7 @@ const (
 	StateNull    = "NULL"
 	StatePending = "PENDING"
 	StateDone    = "DONE"
+	StateError   = "ERROR"
 )
 
 type FileStorer interface {

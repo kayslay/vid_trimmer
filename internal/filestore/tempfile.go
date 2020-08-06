@@ -28,19 +28,21 @@ func (tf tempFile) Write(key, tempOutputPath string) {
 }
 
 func (tf tempFile) FileState(key string) string {
-	if _, err := os.Open(tf.GeneratePath(key)); err != nil {
-		return StateNull
-	}
-
 	s, exists := tf.cache.Get(key)
 	if !exists {
 		return StateNull
 	}
 
-	if fmt.Sprint(s) == StateDone {
-		return StateDone
+	state := fmt.Sprint(s)
+	if state != StateDone {
+		return state
 	}
-	return StatePending
+
+	if _, err := os.Open(tf.GeneratePath(key)); err != nil {
+		return StateNull
+	}
+
+	return fmt.Sprint(s)
 
 }
 

@@ -44,18 +44,21 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 
 	//generate a temp file
 	tempOutputPath := filestore.NewTempFile().GeneratePath(key)
+	s.fileStore.ChangeState(key, filestore.StatePending)
 
 	// get the url struct
 	u, err := url.Parse(d.URL)
 	if err != nil {
+		s.fileStore.ChangeState(key, filestore.StateNull)
 		return "", filestore.StateNull, err
 	}
 
 	n := time.Now()
 
-	pathUrl, err := s.getInput(u.Hostname()).Fetch(ctx, d.URL)
+	pathUrl, err := s.getInput(u.String()).Fetch(ctx, d.URL)
 
 	if err != nil {
+		s.fileStore.ChangeState(key, filestore.StateNull)
 		return "", filestore.StateNull, errors.CoverErr(
 			err,
 			errors.New("could not create file at the moment", http.StatusServiceUnavailable),
@@ -69,12 +72,11 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 
 	//trim in the background
 	go func() {
-		s.fileStore.ChangeState(key, filestore.StatePending)
 		defer input.Remove(pathUrl)
 		defer func() {
 			//handle panic
 			if err := recover(); err != nil {
-				s.fileStore.ChangeState(key, filestore.StateNull)
+				s.fileStore.ChangeState(key, filestore.StateError)
 
 				log.WithFields(log.Fields{
 					"context": "cinema/load",
@@ -86,7 +88,7 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 		n := time.Now()
 		v, err := cinema.Load(pathUrl)
 		if err != nil {
-			s.fileStore.ChangeState(key, filestore.StateNull)
+			s.fileStore.ChangeState(key, filestore.StateError)
 
 			errors.CoverErr(
 				err,
@@ -103,7 +105,7 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 		err = v.Render(tempOutputPath)
 
 		if err != nil {
-			s.fileStore.ChangeState(key, filestore.StateNull)
+			s.fileStore.ChangeState(key, filestore.StateError)
 
 			errors.CoverErr(
 				err,
@@ -129,11 +131,13 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 
 //getInput returns the input interface that will be used to download the video
 //it uses the url to get the input
-func (s basicService) getInput(hostname string) input.Interface {
+func (s basicService) getInput(urlString string) input.Interface {
 	switch {
-	case strings.Contains(hostname, "youtu"):
+	case strings.Contains(urlString, "youtu.be"):
 		return s.youtube
-	case strings.Contains(hostname, "twitter"):
+	case strings.Contains(urlString, "youtube.com/watch"):
+		return s.youtube
+	case strings.Contains(urlString, "twitter"):
 		return s.twitter
 	default:
 		return s.url
