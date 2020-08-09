@@ -7,10 +7,13 @@ time and cash to create a service from it, please do.
 
 The project uses [github.com/jtguibas/cinema](https://github.com/jtguibas/cinema) to trim videos.
 
+My personal [vid-trimmer](https://vid-trim-stage.herokuapp.com)
+
 ## Supported video sites
 - Youtube videos using [github.com/kkdai/youtube](https://github.com/kkdai/youtube)
 - twitter videos using [github.com/dghubble/go-twitter](https://github.com/dghubble/go-twitter)
 - video url 
+
 
 ## Generate Download link
 
