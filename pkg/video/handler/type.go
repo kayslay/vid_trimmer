@@ -9,7 +9,9 @@ import (
 	"net/http"
 	url2 "net/url"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
 )
 
 const (
@@ -40,10 +42,10 @@ func createDownloadStruct(r *http.Request) (service.DownloadStruct, error) {
 		return service.DownloadStruct{}, err2
 	}
 
-	start, _ := strconv.Atoi(q.Get("start"))
-	end, _ := strconv.Atoi(q.Get("end"))
+	start, _ := genSecFromDuration(q.Get("start"))
+	end, _ := genSecFromDuration(q.Get("end"))
 
-	if end < start {
+	if end <= start {
 		return service.DownloadStruct{}, errors.New("end time should be more than start time")
 	}
 
@@ -61,4 +63,25 @@ func createDownloadStruct(r *http.Request) (service.DownloadStruct, error) {
 		End:   time.Duration(end) * time.Second,
 		Type:  format,
 	}, nil
+}
+
+//genSecFromDuration generates the seconds from the duration passed. if the string does not end with a digit
+// return the value
+func genSecFromDuration(t string) (int, error) {
+	t = strings.TrimSpace(t)
+
+	if len(t) == 0 {
+		return 0, nil
+	}
+	//if the last value is a digit use the value passed
+	if unicode.IsNumber(rune(t[len(t)-1])) {
+		return strconv.Atoi(t)
+	}
+
+	d, err := time.ParseDuration(t)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(d.Seconds()), nil
 }
