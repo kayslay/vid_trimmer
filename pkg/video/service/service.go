@@ -33,6 +33,7 @@ func NewBasicService(url, youtube, twitter input.Interface, storer filestore.Fil
 	return &basicService{url: url, youtube: youtube, twitter: twitter, fileStore: storer}
 }
 
+//Download handles request to download a trim video. Download
 func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, string, error) {
 	key, state := s.generateFileKey(d)
 
@@ -64,6 +65,7 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 			log.WithFields(log.Fields{
 				"context": "fetch",
 				"method":  "video/download",
+				"url":     u.String(),
 			}),
 		)
 	}
@@ -80,7 +82,7 @@ func (s basicService) Download(ctx context.Context, d DownloadStruct) (string, s
 				log.WithFields(log.Fields{
 					"context": "cinema/load",
 					"method":  "video/download",
-				})
+				}).Error(err)
 			}
 		}()
 

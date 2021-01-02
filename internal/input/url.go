@@ -66,5 +66,23 @@ func (l link) Fetch(ctx context.Context, p string) (string, error) {
 }
 
 func getMaxSize() int64 {
-	return viper.GetInt64(config.EnvFileSize) << MbShiftBy
+	size := viper.GetInt64(config.EnvFileSize)
+	if size == 0 {
+		return 0
+	}
+	return size << MbShiftBy
+}
+
+//copy copies the content of the reader to the writer. copies all or part depending config.EnvFileSize
+func copy(out io.Writer, r io.Reader) error {
+	var err error
+	maxSize := getMaxSize()
+
+	if maxSize > 0 {
+		_, err = io.CopyN(out, r, maxSize)
+	} else {
+		_, err = io.Copy(out, r)
+	}
+
+	return err
 }

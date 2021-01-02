@@ -31,6 +31,7 @@ func (t twitter) Fetch(ctx context.Context, p string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	id, _ := strconv.ParseInt(path.Base(u.Path), 10, 64)
 	showEntities := true
 	tweet, _, err := t.cl.Statuses.Show(id, &tw.StatusShowParams{

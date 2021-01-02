@@ -5,10 +5,13 @@ import (
 	"fmt"
 	errors2 "github.com/bushaHQ/httputil/errors"
 	"github.com/dchest/uniuri"
+	yt "github.com/kkdai/youtube/v2"
 	log "github.com/sirupsen/logrus"
-	yt "github.com/wader/goutubedl"
+	"strings"
+
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 )
@@ -37,18 +40,24 @@ func (y youtube) Fetch(ctx context.Context, p string) (str string, err error) {
 		}
 	}()
 
-	result, err := yt.New(ctx, p, yt.Options{})
+	u, _ := url.Parse(p)
+	videoID := u.Query().Get("v")
+	if videoID == "" {
+		videoID = strings.Replace(u.Path, "/", "", -1)
+	}
+
+	client := yt.Client{}
+
+	video, err := client.GetVideo(videoID)
 	if err != nil {
 		return "", err
 	}
 
-	log.Println(string(result.RawJSON))
-	downloadResult, err := result.Download(ctx, "best[height<=480]")
+	resp, err := client.GetStream(video, video.Formats.FindByQuality("medium"))
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-
-	defer downloadResult.Close()
+	defer resp.Body.Close()
 
 	outputPath := path.Join(y.dir, uniuri.NewLen(10))
 
@@ -58,8 +67,7 @@ func (y youtube) Fetch(ctx context.Context, p string) (str string, err error) {
 	}
 	defer out.Close()
 
-	_, err = io.CopyN(out, downloadResult, getMaxSize())
-	if err != nil {
+	if err := copy(out, resp.Body); err != nil {
 		if err != io.EOF {
 			return "", err
 		}
